@@ -5,8 +5,95 @@
         <title></title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
+        <link href="../css/bootstrap.css" rel="stylesheet">
+        <link href="../css/bootstrap-theme.css" rel="stylesheet">
+        <link href="../css/main.css" rel="stylesheet">
     </head>
     <body>
-        <div>TODO write content</div>
+        <table style="width:1000px">
+            <tr>
+                <td style="width:100px"></td>
+                <td>
+                    <h1>Kakkukaupan verkkokauppa</h1>
+                    <nav class="navbar navbar-default" role="navigation">
+                        <div class="container-fluid">
+
+                            <form class="navbar-form navbar-left" role="search" action="lista.html" method="POST">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Hakusana">
+                                </div>
+                                <button type="submit" class="btn btn-default">Hae</button>
+                            </form>
+
+                            <ul class="nav navbar-nav">
+
+                                <li><a href="index.html">Etusivu</a></li>
+                                <li class="active"><a href="tuotteet.html">Tuotteet</a></li>
+                                <li><a href="yhteystiedot.html">Yhteystiedot</a></li>
+                            </ul>
+
+                            <ul class="nav navbar-nav navbar-right">
+                                <li><a href="ostoskori.html">Ostoskori</a></li>
+
+                                <li>
+                                    <a href="login.html">Kirjaudu sisään</a>
+                                </li>
+                            </ul>
+                        </div> 
+                    </nav>
+                </td>
+            </tr>
+        </table>
+        <!-- sisältö on sit oikeesti tässä -->
+
+        <table>
+            <tr>
+                <td style="width:200px"></td>
+                <td>
+                    <h3>Tuotteemme:</h3>
+                </td>
+            </tr>
+        </table>
+
+        <table style="width:900px">
+            <tr style="height:180px">
+                <td style="width:200px"></td>
+
+                <td> 
+                    Hääkakut
+                    <a href="#"><img class="media-object" src="kakku.png" alt="..."></a>
+                </td>
+                <td>
+                    Erikoiskakut
+                    <a href="#"><img class="media-object" src="kakku.png" alt="..."></a>
+                </td>
+                <td>
+                    Voileipäkakut
+                    <a href="#"><img class="media-object" src="kakku.png" alt="..."></a>
+                </td>
+                <td> 
+                    Perinteiset täytekakut
+                    <a href="#"><img class="media-object" src="kakku.png" alt="..."></a>
+                </td>
+            </tr>
+
+            <tr style="height:180px">
+                <td style="width:200px"></td>
+
+                <td>
+                    Kuivakakut
+                    <a href="#"><img class="media-object" src="kakku.png" alt="..."></a>
+                </td>
+                <td>
+                    Muut tuotteet
+                    <a href="#"><img class="media-object" src="kakku.png" alt="..."></a>
+
+                </td>
+                <td></td>
+                <td></td>
+            </tr>
+
+        </table>
+
     </body>
 </html>
