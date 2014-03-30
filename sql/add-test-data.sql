@@ -1,0 +1,2 @@
+INSERT INTO Asiakas (sahkoposti, salasana, etunimi, sukunimi, puhelin, osoite, postinumero, posti) VALUES ('sami.korhonen@helsinki.fi', 'koira', 'Sami', 'Korhonen', '+358666', 'Kaivotie 23B 3', '03412', 'Paikka');
+INSERT INTO Asiakas (sahkoposti, salasana, etunimi, sukunimi, puhelin, osoite, postinumero, posti) VALUES ('kopponen@kakku.fi', 'pahilaatikko', 'Minttu', 'Kopponen', '040666', 'Vaasankatu 17', '00600', 'Helsinki');

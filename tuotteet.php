@@ -3,4 +3,4 @@
 require_once 'libs/common.php';
 include 'libs/models/Kayttaja.php';
 
-naytaNakyma("index.php");
+naytaNakyma("tuotteet.php");
