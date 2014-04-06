@@ -22,11 +22,10 @@ if (empty($_POST["password"])) {
 
 $salasana = $_POST["password"];
 
-$k = new Kayttaja();
-$k = $k->etsiKayttajaTunnuksilla($kayttaja, $salasana);
+$k = Kayttaja::etsiKayttajaTunnuksilla($kayttaja, $salasana);
 
 if (!is_null($k)) {
-    $_SESSION['kirjautunut'] = $k;
+    kirjauduSisaan($k);
     ohjaaSivulle('index.php');
 } else {
     naytaNakyma('login.php', array('kayttaja' => $kayttaja, 'virhe' => "Virhe! Sähköposti ja salasana eivät täsmää.", request));

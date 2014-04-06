@@ -15,7 +15,6 @@ function getKayttajat() {
     $yhteys = new PDO('mysql:unix_socket=/home/samkorho/mysql/socket;dbname=kakkukauppa', 'root', 'root');
     $yhteys->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $sql = "SELECT asiakasId AS id, sahkoposti AS tunnus, salasana FROM Asiakas";
     
     $kysely = $yhteys->prepare($sql);
     $kysely->execute();

@@ -8,6 +8,7 @@ function naytaNakyma($sivu, $data = array()) {
     exit();
 }
 
+
 function ohjaaSivulle($sivu){
     header("Location: $sivu");
 }
@@ -29,9 +30,14 @@ function haeKayttaja(){
     return $k;
 }
 
+function kirjauduSisaan($k){
+    $_SESSION['kirjautunut'] = $k;
+}
+
 function kirjauduUlos() {
     session_start();
     unset($_SESSION['kirjautunut']);
+    unset($_SESSION['tilaus']);
 }
 
 

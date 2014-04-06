@@ -1,6 +1,6 @@
-CREATE TABLE Asiakas
+CREATE TABLE Kayttaja
 (
-asiakasId INTEGER NOT NULL AUTO_INCREMENT,
+kayttajaId INTEGER NOT NULL AUTO_INCREMENT,
 etunimi varchar(80) NOT NULL,
 sukunimi varchar(80) NOT NULL,
 sahkoposti varchar(80) NOT NULL,
@@ -9,7 +9,8 @@ osoite varchar(80),
 postinumero varchar(5),
 posti varchar(30),
 salasana varchar(120) NOT NULL,
-PRIMARY KEY (asiakasId)
+kayttajaTyyppi varchar(15) NOT NULL,
+PRIMARY KEY (kayttajaId)
 );
 
 CREATE TABLE Tuoteryhma
@@ -33,13 +34,13 @@ FOREIGN KEY (tuoteryhmaId) REFERENCES Tuoteryhma(tuoteryhmaId)
 CREATE TABLE Tilaus
 (
 tilausId INTEGER NOT NULL AUTO_INCREMENT,
-asiakasId INTEGER,
+kayttajaId INTEGER,
 tilausvaihe varchar(50),
 tilauspaiva timestamp,
 toimituspaiva timestamp,
 toimitustapa varchar(20),
 PRIMARY KEY (tilausId),
-FOREIGN KEY (asiakasId) REFERENCES Asiakas(asiakasId)
+FOREIGN KEY (kayttajaId) REFERENCES Kayttaja(kayttajaId)
 );
 
 CREATE TABLE TilausTuote

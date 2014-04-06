@@ -24,9 +24,9 @@
                     <nav class="navbar navbar-default" role="navigation">
                         <div class="container-fluid">
 
-                            <form class="navbar-form navbar-left" role="search" action="lista.php" method="POST">
+                            <form class="navbar-form navbar-left" role="search" action="lista.php?sivu=" method="GET">
                                 <div class="form-group">
-                                    <input type="text" class="form-control" placeholder="Hakusana">
+                                    <input type="text" name ="hakusana" class="form-control" placeholder="Hakusana">
                                 </div>
                                 <button type="submit" class="btn btn-default">Hae</button>
                             </form>
@@ -54,7 +54,7 @@
                 </td>
             </tr>
         </table>
-        <!-- sisältö on sit oikeesti tässä -->
+<!--        <!-- sisältö tulee tähän kohtaan -->
 
         <table style="width:900px">
             <tr>
@@ -64,7 +64,7 @@
                         <div class="alert alert-danger"><?php echo $data->virhe; ?></div>
                     <?php endif; ?>
                     <?php
-                    require 'views/' . $sivu; //kato että ei tuu välejä tähän!
+                    require 'views/' . $sivu;
                     ?>
                 </td>
             </tr>

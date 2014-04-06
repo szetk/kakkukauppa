@@ -1,10 +1,10 @@
 <?php
 
-require 'libs/tietokanta.php';
+require_once 'libs/tietokanta.php';
 
 class Kayttaja {
 
-    private $asiakasId; //tullaan päivittämään käyttäjäId:ksi ensi viikolla
+    private $kayttajaId; //tullaan päivittämään käyttäjäId:ksi ensi viikolla
     private $sahkoposti;
     private $salasana;
     private $etunimi;
@@ -13,10 +13,12 @@ class Kayttaja {
     private $osoite;
     private $postinumero;
     private $posti;
-    //private $kayttajaTyyppi tullaan lisäämään muuttuja käyttäjätyyppejä (asiakas, työntekijä) varten
+    private $kayttajaTyyppi; // muuttuja käyttäjätyyppejä (asiakas, admin, tyontekija) varten
+
+    
 
     public static function etsiKayttajaTunnuksilla($kayttaja, $salasana) {
-        $sql = "SELECT asiakasId, sahkoposti, salasana, osoite, etunimi, sukunimi, puhelin, postinumero, posti from Asiakas where sahkoposti = ? AND salasana = ? LIMIT 1";
+        $sql = "SELECT * from Kayttaja where sahkoposti = ? AND salasana = ?";
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute(array($kayttaja, $salasana));
         $tulos = $kysely->fetchObject();
@@ -24,7 +26,7 @@ class Kayttaja {
             return null;
         } else {
             $kayttaja = new Kayttaja();
-            $kayttaja->setAsiakasId($tulos->asiakasId);
+            $kayttaja->setKayttajaId($tulos->kayttajaId);
             $kayttaja->setSahkoposti($tulos->sahkoposti);
             $kayttaja->setSalasana($tulos->salasana);
             $kayttaja->setEtunimi($tulos->etunimi);
@@ -33,12 +35,13 @@ class Kayttaja {
             $kayttaja->setOsoite($tulos->osoite);
             $kayttaja->setPostinumero($tulos->postinumero);
             $kayttaja->setPosti($tulos->posti);
+            $kayttaja->setKayttajaTyyppi($tulos->kayttajaTyyppi);
             return $kayttaja;
         }
     }
 
-    public function getAsiakasId() {
-        return $this->asiakasId;
+    public function getKayttajaId() {
+        return $this->kayttajaId;
     }
 
     public function getSahkoposti() {
@@ -73,8 +76,12 @@ class Kayttaja {
         return $this->posti;
     }
 
-    public function setAsiakasId($asiakasId) {
-        $this->asiakasId = $asiakasId;
+    public function getKayttajaTyyppi() {
+        return $this->kayttajaTyyppi;
+    }
+
+    public function setKayttajaId($kayttajaId) {
+        $this->kayttajaId = $kayttajaId;
     }
 
     public function setSahkoposti($sahkoposti) {
@@ -109,8 +116,8 @@ class Kayttaja {
         $this->posti = $posti;
     }
 
-
-
-
+    public function setKayttajaTyyppi($kayttajaTyyppi) {
+        $this->kayttajaTyyppi = $kayttajaTyyppi;
+    }
 
 }
