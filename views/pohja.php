@@ -63,6 +63,13 @@
                     <?php if (isset($data->virhe)): ?>
                         <div class="alert alert-danger"><?php echo $data->virhe; ?></div>
                     <?php endif; ?>
+                    
+                    <?php if (isset($data->virheet)): ?>
+                        <?php foreach ($data->virheet as $virhe):?>
+                        <div class="alert alert-danger"><?php echo $virhe; ?></div>
+                    <?php endforeach?>
+                    <?php endif; ?>
+                    
                     <?php
                     require 'views/' . $sivu;
                     ?>

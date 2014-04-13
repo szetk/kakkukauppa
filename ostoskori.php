@@ -4,9 +4,14 @@ require_once 'libs/common.php';
 include 'libs/models/Kayttaja.php';
 include 'libs/models/Tilaus.php';
 
-session_start();
+//session_start();
 
 $tilaus = Tilaus::getTilaus();
+
+// yksittäisen tuotteen poisto tapahtuu GET-tyyppisellä kutsulla (koska näkymäsivulla käytetty linkkiä)
+if (!empty($_GET['poista'])){  
+    Tilaus::poistaTuote($tilaus, $_GET['poista']);
+}
 
 if (!empty($_POST['tyhjenna'])) {
     Tilaus::tyhjennaOstoskori($tilaus);
@@ -14,20 +19,17 @@ if (!empty($_POST['tyhjenna'])) {
     naytaNakyma("ostoskori.php", array('tilaus' => $tilaus));
 }
 
+// selvitetään ja käsitellään taulukot ostoskorin tuotteista ja määristä
 if (!empty($_POST['maarat']) && !empty($_POST['tuotteet'])) {
     $tuotteet = $_POST['tuotteet'];
     $maarat = $_POST['maarat'];
     foreach ($tuotteet as $key => $tuote) {
+        // ostoskorin (tilauksen) määrät päivitetään yksitellen
         Tilaus::paivitaMaarat($tilaus, $tuote, $maarat[$key]);
-//        echo "Tuotteen ID: ", $tuote, " ja tuotteita: ", $maarat[$key], ", thank you<br>";
     }
 }
 
-if (!empty($_POST['poista'])) {
-    $poistettavaTuote = $_POST['poista'];
-    Tilaus::poistaTuote($tilaus, $poistettavaTuote);
-}
-
+// haetaan tilaukselle tuotteet tietokannasta
 $tilaus->setTuotteet(Tilaus::getTilausTuotteet($tilaus));
 
 

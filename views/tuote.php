@@ -2,7 +2,7 @@
     <tr>
         <td style="width:700px">
             <h3><?php echo $data->tuote->getNimi(); ?></h3>
-            <img class="media-object" src="kakku.png" alt="..."> 
+            <img class="media-object" src="<?php echo "imgs/img", $data->tuote->getTuoteId(), ".png"; ?>" onerror="this.src='imgs/kakku.png'"> 
 
             <h4><?php echo $data->tuote->getKuvaus(); ?></h4>
         </td>

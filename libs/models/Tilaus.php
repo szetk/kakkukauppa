@@ -12,7 +12,26 @@ class Tilaus {
     private $toimituspaiva;
     private $toimitustapa;
     private $tuotteet;
+    
+// Tämä hakee parametrinä saadun käyttäjän avoimen tilauksen, eli ostoskorin. Näitä voi olla vain yksi kerrallaan.
+    public static function haeAvoinTilaus($kayttaja) {
+        $sql = "SELECT * FROM Tilaus WHERE tilausvaihe LIKE 'avoin' and kayttajaId LIKE ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($kayttaja->getKayttajaId()));
+        $tulos = $kysely->fetchObject();
+        return Tilaus::tuloksenKasittely($tulos);
+    }
+    
+// Tämä hakee tilauksen tietokannasta parametrinä saadun tilausId:n perusteella
+    public static function haeTilausId($tilausId) {
+        $sql = "SELECT * FROM Tilaus WHERE tilausId = ? LIMIT 1";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($tilausId));
+        $tulos = $kysely->fetchObject();
+        return Tilaus::tuloksenKasittely($tulos);
+    }
 
+// Tämä palauttaa avoimen tilauksen (eli ostoskorin), jota verkkokaupan käyttäjä voi käyttää ostoskorina.
     public static function getTilaus() {
         session_start();
         if (onKirjautunut()) {
@@ -31,25 +50,27 @@ class Tilaus {
         return $tilaus;
     }
 
-    // vähän ostoskorifunktioita
+// Tämä palauttaa parametrinä saadun tilaukseen liittyvät tuotteet
     public static function getTilausTuotteet($tilaus) {
         $sql = "SELECT * FROM TilausTuote WHERE tilausId = ?";
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute(array($tilaus->getTilausId()));
         $tulokset = array();
         foreach ($kysely->fetchAll(PDO::FETCH_OBJ) as $tulos) {
-//            $arr = array($tulos->tuoteId, $tulos->maara);
             $tulokset[$tulos->tuoteId] = $tulos->maara;
-//            $tulokset[] = $arr;
         }
         return $tulokset;
     }
-
+    
+// Tämä päivittää parametrinä saatuun tilaukseen parametrinä saadut tuotteiden määrät tuoteId:n perusteella
     public static function paivitaMaarat() {
         $tilaus = func_get_arg(0);
         $tuoteId = func_get_arg(1);
         $maara = func_get_arg(2);
-        if ($maara == null || $maara <= 0) {
+        if ($maara == null || $maara < 0) {
+            return;
+        } else if ($maara == 0) {
+            Tilaus::poistaTuote($tilaus, $tuoteId);
             return;
         }
         $sql = "UPDATE TilausTuote SET maara = ? WHERE tilausId = ? AND tuoteId = ?";
@@ -57,6 +78,7 @@ class Tilaus {
         $kysely->execute(array($maara, $tilaus->getTilausId(), $tuoteId));
     }
 
+// Tämä poistaa parametrinä saadusta tilauksesta parametrinä annetun tuotteen tuoteId:n perusteella
     public static function poistaTuote() {
         $tilaus = func_get_arg(0);
         $tuoteId = func_get_arg(1);
@@ -64,14 +86,15 @@ class Tilaus {
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute(array($tilaus->getTilausId(), $tuoteId));
     }
-
+// Tämä tyhjentää koko ostoskorin, eli tilauksen sisällön (ei poista ostoskoria)
     public static function tyhjennaOstoskori($tilaus) {
         $sql = "DELETE FROM TilausTuote WHERE tilausId = ?";
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute(array($tilaus->getTilausId()));
         $tilaus->setTuotteet(null);
     }
-
+    
+// Tämä lisää parametrinä saatuun tilaukseen, parametrina saadun määrn parametrinä saatua tuotetta tuoteId:n perusteella
     public static function lisaaOstoskoriin() {
         $tilaus = func_get_arg(0);
         $tuoteId = func_get_arg(1);
@@ -79,15 +102,20 @@ class Tilaus {
         if ($maara == null || $maara <= 0) {
             return;
         }
-//        if (korissaTuote($tuoteId)){
-//            update
-//        }
+        // Jos ostoskorista löytyy jo tuotetta, muutetaan tietokantaan uusi määrä (aiemmat + juuri lisätyt)
+        foreach (Tilaus::getTilausTuotteet($tilaus) as $tId => $m) {
+            if ($tuoteId == $tId) {
+                Tilaus::paivitaMaarat($tilaus, $tuoteId, $maara + $m);
+                return;
+            }
+        }
+
         $sql = "INSERT INTO TilausTuote(tilausId, tuoteId, maara) VALUES(?, ?, ?)";
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute(array($tilaus->getTilausId(), $tuoteId, $maara));
     }
 
-    // jotain muita funktioita
+// Tämä luo käyttäjälle uuden tilauksen, käytännössä ostoskorin
     public static function uusiTilaus($kayttaja) {
         if ($kayttaja != null) {
             $sql = "INSERT INTO Tilaus(tilausvaihe, kayttajaId) VALUES('avoin', ?)";
@@ -103,10 +131,7 @@ class Tilaus {
         return Tilaus::haeTilausId($tilausId);
     }
 
-    public static function asetaTilaus($tilaus) {
-        $_SESSION['tilaus'] = $tilaus;
-    }
-
+// Tämä tekee tietokantakyselyn palauttamasta PDO tuloksesta tilauksen
     public static function tuloksenKasittely($tulos) {
         if ($tulos == null) {
             return null;
@@ -121,23 +146,14 @@ class Tilaus {
             return $tilaus;
         }
     }
-
-    public static function haeAvoinTilaus($kayttaja) {
-        $sql = "SELECT * FROM Tilaus WHERE tilausvaihe LIKE 'avoin' and kayttajaId LIKE ?";
-        $kysely = getTietokantayhteys()->prepare($sql);
-        $kysely->execute(array($kayttaja->getKayttajaId()));
-        $tulos = $kysely->fetchObject();
-        return Tilaus::tuloksenKasittely($tulos);
+    
+// Tämä asettaa sessioon tilauksen
+    public static function asetaTilaus($tilaus) {
+        $_SESSION['tilaus'] = $tilaus;
     }
 
-    public static function haeTilausId($tilausId) {
-        $sql = "SELECT * FROM Tilaus WHERE tilausId = ? LIMIT 1";
-        $kysely = getTietokantayhteys()->prepare($sql);
-        $kysely->execute(array($tilausId));
-        $tulos = $kysely->fetchObject();
-        return Tilaus::tuloksenKasittely($tulos);
-    }
-
+// getterit ja setterit
+    
     public function getTilausId() {
         return $this->tilausId;
     }

@@ -3,8 +3,6 @@
 require_once 'libs/common.php';
 include 'libs/models/Kayttaja.php';
 
-session_start();
-
 if (onKirjautunut()) {
     kirjauduUlos();
     ohjaaSivulle("login.php");

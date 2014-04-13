@@ -1,6 +1,7 @@
 
 <h3>Ostoskorisi:</h3>
-<h4>Id: <?php echo $data->tilaus->getTilausId(); $yht = 0; ?> </h4>
+<h4>Id: <?php echo $data->tilaus->getTilausId();
+$yht = 0; ?> </h4>
 
 <form class="form-horizontal" role="form" action="ostoskori.php" method="POST">
 
@@ -25,7 +26,7 @@
                     <td>
                         <div class="media">
                             <a class="pull-left" href="#">
-                                <img class="media-object" src="kakku.png" alt="..."> 
+                                <img class="media-object" src="<?php echo "imgs/img", $tuote->getTuoteId(), ".png"; ?>" onerror="this.src='imgs/kakku.png'">
                             </a>
                             <div class="media-body">
                                 <h4 class="media-heading"><?php echo $tuote->getNimi(); ?></h4>
@@ -34,16 +35,17 @@
                         </div>
                     </td>
                     <td><?php echo $tuote->getHinta(); ?> EUR</td>
-                    <td><input type="number" class="form-control" name="maarat[]" value=<?php echo $maara; ?>></td>
-                    <td><?php $yht = $yht + $tuote->getHinta() * $maara; echo $tuote->getHinta() * $maara;?> EUR</td>
-                    <td><h3><a href="#">X</a></h3></td>
+                    <td><input type="number" class="form-control" name="maarat[]" value=<?php echo htmlspecialchars($maara); ?>></td>
+                    <td><?php $yht = $yht + $tuote->getHinta() * $maara;
+                echo $tuote->getHinta() * $maara; ?> EUR</td>
+                    <td><h3><a href="ostoskori.php?poista=<?php echo $tuote->getTuoteId() ?>">X</a></h3></td>
             <input type="hidden" name="tuotteet[]" value=<?php echo $tuoteId; ?>>
 
             </tr>
             <tr style="height:15px"></tr>
-        <?php endforeach; ?>
+<?php endforeach; ?>
 
-            
+
         <tr style="height:30px">
             <td></td>
             <td></td>

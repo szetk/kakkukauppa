@@ -15,12 +15,11 @@ class Kayttaja {
     private $posti;
     private $kayttajaTyyppi; // muuttuja käyttäjätyyppejä (asiakas, admin, tyontekija) varten
 
-    
-
-    public static function etsiKayttajaTunnuksilla($kayttaja, $salasana) {
+    // Hakee tietokannasta käyttäjän sähköpostin ja salasanan perusteella 
+    public static function etsiKayttajaTunnuksilla($sahkoposti, $salasana) {
         $sql = "SELECT * from Kayttaja where sahkoposti = ? AND salasana = ?";
         $kysely = getTietokantayhteys()->prepare($sql);
-        $kysely->execute(array($kayttaja, $salasana));
+        $kysely->execute(array($sahkoposti, $salasana));
         $tulos = $kysely->fetchObject();
         if ($tulos == null) {
             return null;
@@ -38,6 +37,137 @@ class Kayttaja {
             $kayttaja->setKayttajaTyyppi($tulos->kayttajaTyyppi);
             return $kayttaja;
         }
+    }
+    
+    // Lisää käyttäjän tietokantaan. Huomioi, että kayttaja:n soveltuvuus on varmistettava ennen funktion kutsua.
+    public static function lisaaKayttaja($kayttaja) {
+        $kentat = array(
+            $kayttaja->etunimi,
+            $kayttaja->sukunimi,
+            $kayttaja->sahkoposti,
+            $kayttaja->puhelin,
+            $kayttaja->osoite,
+            $kayttaja->posti,
+            $kayttaja->postinumero,
+            $kayttaja->salasana);
+
+        $sql = "INSERT INTO Kayttaja(etunimi, sukunimi, sahkoposti, puhelin, osoite, posti, postinumero, salasana, kayttajaTyyppi) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'asiakas')";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute($kentat);
+    }
+
+    // Päivittää tietokantaan käyttäjän tiedot. Huomioi, että kayttaja täytyy tarkistaa ennen funktion kutsua.
+    public static function paivitaKayttaja($kayttaja) {
+        $kentat = array(
+            $kayttaja->etunimi,
+            $kayttaja->sukunimi,
+            $kayttaja->sahkoposti,
+            $kayttaja->puhelin,
+            $kayttaja->osoite,
+            $kayttaja->posti,
+            $kayttaja->postinumero,
+            $kayttaja->salasana,
+            $kayttaja->kayttajaId);
+
+        $sql = "UPDATE Kayttaja SET etunimi = ?, sukunimi = ?, sahkoposti = ?, puhelin = ?, osoite = ?, posti = ?, postinumero = ?, salasana = ? WHERE kayttajaId = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute($kentat);
+    }
+
+    // Selvittää onko parametrinä annetulla sähköpostilla olemassa jo käyttäjä
+    public static function onkoSahkopostiRekisteroity($sahkoposti) {
+        $sql = "SELECT count(*) from Kayttaja where sahkoposti = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($sahkoposti));
+        $tulos = $kysely->fetchColumn();
+        if ((int) $tulos > 0) {
+            return true;
+        }
+        return false;
+    }
+
+// Takistaa, että onko parametrinä annettu käyttäjä soveltuva tietokantaan. Tämän monsteriluokan voisi jakaa pienempiin luokkiin.
+    // Totuusarvoista parametriä reg käytetään, jotta tiedämme tarkistetaanko onko sähköposti jo käytössä. Sähköpostin olemassaoloa ei tule tarkistaa kun esimerkiksi käyttäjä muokkaa omia tietojaan.
+    public static function kelpaakoKayttajaksi($kayttaja, $reg) {
+        $virheet = array();
+
+        // Tässä käydään käyttäjän muuttujat yksitellen läpi, ja lisätään virheet-listaan virheet
+        $tutkittava = $kayttaja->etunimi;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut etunimeä";
+        } else if (strlen($tutkittava) < 3 || strlen($tutkittava) > 80) {
+            $virheet[] = "Etunimen tulee olla 3-80 merkkiä pitkä";
+        } else if (preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬]/', $tutkittava)) {
+            $virheet[] = "Antmasi etunimi sisältää kiellettyjä erikoismerkkejä";
+        }
+
+        $tutkittava = $kayttaja->sukunimi;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut sukunimeä";
+        } else if (strlen($tutkittava) < 3 || strlen($tutkittava) > 80) {
+            $virheet[] = "Sukunimen tulee olla 3-80 merkkiä pitkä";
+        } else if (preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬]/', $tutkittava)) {
+            $virheet[] = "Antmasi sukunimi sisältää kiellettyjä erikoismerkkejä";
+        }
+
+        $tutkittava = $kayttaja->sahkoposti;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut sähköpostia";
+        } else if (strlen($tutkittava) < 5 || strlen($tutkittava) > 80) {
+            $virheet[] = "Sähköpostin tulee olla 5-80 merkkiä pitkä";
+        } else if (!preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/', $tutkittava)) {
+            $virheet[] = "Sähköpostin tulee olla muotoa xxx@xxx.xx ja sisältää vain sallitutja merkkejä";
+        } else if ($reg) {
+            if (Kayttaja::onkoSahkopostiRekisteroity($tutkittava)) {
+                $virheet[] = "Sähköpostilla on jo käyttäjätunnus";
+            }
+        }
+
+        $tutkittava = $kayttaja->salasana;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut salasanaa";
+        } else if (strlen($tutkittava) < 4 || strlen($tutkittava) > 30) {
+            $virheet[] = "Salasanan tulee olla 4-30 merkkiä pitkä";
+        }
+
+        $tutkittava = $kayttaja->puhelin;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut puhelinnumeroa";
+        } else if (strlen($tutkittava) < 3 || strlen($tutkittava) > 15) {
+            $virheet[] = "Puhelinnumeron tulee olla 4-15 merkkiä pitkä";
+        } else if (!preg_match("#^[0-9+]+$#", $tutkittava)) {
+            $virheet[] = "Puhelinnumeroon kelpaavat numerot, ja +-merkki";
+        }
+
+        $tutkittava = $kayttaja->osoite;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut osoitetta";
+        } else if (strlen($tutkittava) < 3 || strlen($tutkittava) > 80) {
+            $virheet[] = "Osoitteen tulee olla 3-80 merkkiä pitkä";
+        } else if (preg_match('/[\'^£$%&*()}{#~?><>,|=_+¬]/', $tutkittava)) {
+            $virheet[] = "Antmasi osoite sisältää kiellettyjä erikoismerkkejä";
+        }
+
+        $tutkittava = $kayttaja->posti;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut paikkakuntaa";
+        } else if (strlen($tutkittava) < 3 || strlen($tutkittava) > 80) {
+            $virheet[] = "Paikkakunnan tulee olla 3-80 merkkiä pitkä";
+        } else if (preg_match('/[\'^£$%&*()}{#~?><>,|=_+¬]/', $tutkittava)) {
+            $virheet[] = "Antmasi paikkakunta sisältää kiellettyjä erikoismerkkejä";
+        }
+
+        $tutkittava = $kayttaja->postinumero;
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut postinumeroa";
+        } else if (strlen($tutkittava) != 5) {
+            $virheet[] = "Postinumeron tulee olla 5 merkkiä pitkä";
+        } else if (!preg_match("#^[0-9]+$#", $tutkittava)) {
+            $virheet[] = "Postinumero saa sisältää vain numeroita";
+        }
+
+
+        return $virheet;
     }
 
     public function getKayttajaId() {
