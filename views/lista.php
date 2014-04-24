@@ -1,31 +1,47 @@
 <h3>Haun tulokset</h3>
 <h4><?php
-    if ($data->hakusana != null) {
-        echo 'Hakusanalla "', htmlspecialchars($data->hakusana);
-        if ($data->tuotteita > 1) {
-            echo '" löydettiin ', $data->tuotteita, " tuotetta.";
-        } else if ($data->tuotteita == 1) {
-            echo " löydettiin yksi tuote.";
-        } else {
-            echo " ei löydetty yhtään tuotetta.";
+    if (isset($data->hakusana)) {
+        if ($data->hakusana != null) {
+            echo 'Hakusanalla "', htmlspecialchars($data->hakusana);
+            if ($data->tuotteita > 1) {
+                echo '" löydettiin ', $data->tuotteita, " tuotetta.";
+            } else if ($data->tuotteita == 1) {
+                echo " löydettiin yksi tuote.";
+            } else {
+                echo " ei löydetty yhtään tuotetta.";
+            }
         }
+    } else if (isset($data->tuoteryhma)){
+        echo "Tuoteryhmästä ", $data->tuoteryhma, " löytyi ", $data->tuotteita, " tuotetta.";
     }
     ?> </h4>
 
 
 
 
-<div class="media">
-    <ul class="media-list">
-
+<table>
+    <thead>
+        <tr>
+            <td style="width:150px"></td>
+            <td style="width:500px"></td>
+            <td style="width:200px"></td>
+        </tr>
+    </thead>
+    <tbody>
         <?php foreach ($data->tuotteet as $tuote): ?>
-            <li class="media">
-                <a class="pull-left" href="#">
-                    <img class="media-object" src="<?php echo "imgs/img", $tuote->getTuoteId(), ".png"; ?>" onerror="this.src='imgs/kakku.png'"> 
-                </a>
-                <div class="media-body">
+            <tr>
+                <td>
+                    <a class="pull-left" href="#">
+                        <img class="media-object" src="<?php echo "imgs/", $tuote->getKuva(); ?>" onerror="this.src='imgs/kakku.png'"> 
+                    </a>
+                </td>
+                <td>
                     <h4 class="media-heading"><?php echo $tuote->getNimi(); ?></h4>
                     <h5><?php echo $tuote->getKuvaus(); ?> </h5>
+                    <a href="tuote.php?id=<?php echo $tuote->getTuoteId(); ?>">Lisätietoja > </a>
+
+                </td>
+                <td>
                     <h5 class="pull-right"> <?php echo $tuote->getHinta(); ?> EUR <br>
                         <form class="form-horizontal" role="form" action="ostoskori.php" method="POST">
 
@@ -37,14 +53,36 @@
 
                                 </div>
                             </div>
-                        </form></h5>
-                    <a href="tuote.php?id=<?php echo $tuote->getTuoteId(); ?>">Lisätietoja > </a>
-                </div>
-            </li>
-        <?php endforeach; ?>
+                        </form>
+                        <?php if (onKirjautunut() && Kayttaja::onTyontekija(haeKayttaja())): ?>
+                            <form class="form-horizontal" role="form" action="tuotetiedot.php" method="POST">
+                                <div class="form-group">
+                                    <div class="col-md-5">
+                                        <input type="hidden" name="toimi" value="tuotesivulta"> <!-- Tällä identifioidaan tullaanko ekaa kertaa muokkaamaan vai ei-->
+                                        <input type="hidden" name="tuoteId" value="<?php echo $tuote->getTuoteId(); ?>"/>
+                                        <button type="submit" class="btn btn-default">Muokkaa tuotetta</button>
+                                    </div>
+                                </div>
+                            </form>
 
-    </ul>
-</div>
+                            <form class="form-horizontal" role="form" action="tuotetiedot.php" method="POST">
+                                <div class="form-group">
+                                    <div class="col-md-5">
+                                        <input type="hidden" name="toimi" value="poista"> <!-- Tällä identifioidaan tullaanko ekaa kertaa muokkaamaan vai ei-->
+                                        <input type="hidden" name="tuoteId" value="<?php echo $tuote->getTuoteId(); ?>"/>
+                                        <button type="submit" class="btn btn-default">Poista</button>
+                                    </div>
+                                </div>
+                            </form>
+                        <?php endif ?>
+                    </h5>
+                </td>
+                <td></td>
+            </tr>
+            <tr style="height:10px"></tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
 <?php if ($data->sivu > 1): ?>
     <a href="lista.php?sivu=<?php echo $data->sivu - 1; ?>">Edellinen sivu</a>

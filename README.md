@@ -1,5 +1,7 @@
-Tietokantasovelluksen esittelysivu - Kakkukaupan verkkokauppa
-
+Tietokantasovelluksen esittelysivu
+http://samkorho.users.cs.helsinki.fi/kakkukauppa/esittelysivu.html
+Kakkukaupan verkkokauppa
+http://samkorho.users.cs.helsinki.fi/kakkukauppa/index.php
 
 Työn aihe
 

@@ -9,12 +9,79 @@ class Tuote {
     private $nimi;
     private $hinta;
     private $kuvaus;
+    private $kuva;
+
+    public static function kelpaakoTuotteeksi($tuote) {
+        $virheet = array();
+
+        $tutkittava = $tuote->getNimi();
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut nimeä";
+        } else if (strlen($tutkittava) < 3 || strlen($tutkittava) > 80) {
+            $virheet[] = "Nimen tulee olla 3-80 merkkiä pitkä";
+        } else if (preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬]/', $tutkittava)) {
+            $virheet[] = "Antmasi nimi sisältää kiellettyjä erikoismerkkejä";
+        }
+
+        $tutkittava = $tuote->getHinta();
+        if (empty($tutkittava)) {
+            $virheet[] = "Et antanut hintaa";
+        } else if ($tutkittava < 0 || $tutkittava > 99999999.99) {
+            $virheet[] = "Hinnan tulee olla positiivinen ja korkeintaan 99999999.99";
+        } else if (!preg_match("#^[0-9.]+$#", $tutkittava)) {
+            $virheet[] = "Sallitut merkit ovat numerot ja .-merkki. Hinta tulee syöttää kahden desimaalin tarkkuudella. Esim. 123.23";
+        }
+
+        $tutkittava = $tuote->getKuvaus();
+        if (strlen($tutkittava) > 3000) {
+            $virheet[] = "Kuvauksen tulee olla korkeintaan 3000 merkkiä pitkä";
+        } else if (preg_match('/[\'^£$&}{@#~><>|=_+¬]/', $tutkittava)) {
+            $virheet[] = "Antmasi kuvaus sisältää kiellettyjä erikoismerkkejä";
+        }
+
+        $tutkittava = $tuote->getKuva();
+        if (strlen($tutkittava) > 20) {
+            $virheet[] = "Kuvatiedostossa saa olla korkeintaan 20-merkkiä";
+        } else if ($tutkittava != null && !preg_match('/(\[a-z0-9-]+)*(\.(png|jpg)){1}$/', $tutkittava)) {
+            $virheet[] = "Sallitut merkit ovat pienet merkit välillä a-z, numerot ja .-merkki. Muoto esimerkiksi: kakku12.png. Sallitut formaatit ovat png ja jpg";
+        }
+
+        return $virheet;
+    }
+
+    public static function lisaaTuote($tuote) {
+        $kentat = array(
+            $tuote->nimi,
+            $tuote->hinta,
+            $tuote->tuoteryhmaId,
+            $tuote->kuvaus);
+
+        $sql = "INSERT INTO Tuote(nimi, hinta, tuoteryhmaId, kuvaus) VALUES(?, ?, ?, ?)";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute($kentat);
+
+        return getTietokantayhteys()->lastInsertId();
+    }
+
+    public static function paivitaTuote($tuote) {
+        $kentat = array(
+            $tuote->nimi,
+            $tuote->hinta,
+            $tuote->tuoteryhmaId,
+            $tuote->kuvaus,
+            $tuote->kuva,
+            $tuote->tuoteId);
+
+        $sql = "UPDATE Tuote SET nimi = ?, hinta = ?, tuoteryhmaId = ?, kuvaus = ?, kuva = ? WHERE tuoteId = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute($kentat);
+    }
 
 // Tämä hake tietokannasta sivun tuloksia hakusanalla. Parametreinä annetaan myös sivun numero ja tuotteiden määrä sivulla
     public static function hae() {
         $hakusana = func_get_arg(0);
-        $sivu = func_get_arg(1) - 1;
-        $montako = func_get_arg(2);
+        $montako = func_get_arg(1);
+        $sivu = (func_get_arg(2) - 1) * $montako;
         $hakuparametri = "%$hakusana%";
         if ($hakusana == null) {
             $sql = "SELECT * from Tuote ORDER BY nimi LIMIT $sivu, $montako";
@@ -45,23 +112,30 @@ class Tuote {
         return $tulokset;
     }
 
-// Tämä käsittelee PDO:n kautta saadun tuloksen, ja palauttaa tuotteen. Tätä kutsutaan monissa tietokantahakuihin liittyvissä funktioissa.
-    public static function tuloksenKasittely($tulos) {
-        $tuote = new Tuote();
-        $tuote->setTuoteId($tulos->tuoteId);
-        $tuote->setTuoteryhmaId($tulos->tuoteryhmaId);
-        $tuote->setNimi($tulos->nimi);
-        $tuote->setHinta($tulos->hinta);
-        $tuote->setKuvaus($tulos->kuvaus);
-        return $tuote;
+    public static function haeTuoteryhmanTuotteet() {
+        $tuoteryhma = func_get_arg(0);
+        $montako = func_get_arg(1);
+        $sivu = (func_get_arg(2) - 1) * $montako;
+        $sql = "SELECT * FROM Tuote WHERE tuoteryhmaId = ? ORDER BY nimi LIMIT $sivu, $montako";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($tuoteryhma));
+
+        $tulokset = array();
+        foreach ($kysely->fetchAll(PDO::FETCH_OBJ) as $tulos) {
+            $tulokset[] = Tuote::tuloksenKasittely($tulos);
+        }
+        return $tulokset;
     }
 
-// Tämä palauttaa tietokannasta tuoteId:tä vastaavan tuotteen
-    public static function etsi($tuoteId) {
-        $sql = "SELECT * from Tuote where tuoteId = ? LIMIT 1";
+    public static function tuoteryhmassaTuotteita($tuoteryhma) {
+        $sql = "SELECT count(*) FROM Tuote WHERE tuoteryhmaId LIKE ?";
         $kysely = getTietokantayhteys()->prepare($sql);
-        $kysely->execute(array($tuoteId));
-        $tulos = $kysely->fetchObject();
+        $kysely->execute(array($tuoteryhma));
+        return $kysely->fetchColumn();
+    }
+
+// Tämä käsittelee PDO:n kautta saadun tuloksen, ja palauttaa tuotteen. Tätä kutsutaan monissa tietokantahakuihin liittyvissä funktioissa.
+    public static function tuloksenKasittely($tulos) {
         if ($tulos == null) {
             return null;
         } else {
@@ -71,9 +145,24 @@ class Tuote {
             $tuote->setNimi($tulos->nimi);
             $tuote->setHinta($tulos->hinta);
             $tuote->setKuvaus($tulos->kuvaus);
-
+            $tuote->setKuva($tulos->kuva);
             return $tuote;
         }
+    }
+
+// Tämä palauttaa tietokannasta tuoteId:tä vastaavan tuotteen
+    public static function etsi($tuoteId) {
+        $sql = "SELECT * from Tuote where tuoteId = ? LIMIT 1";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($tuoteId));
+        $tulos = $kysely->fetchObject();
+        return Tuote::tuloksenKasittely($tulos);
+    }
+
+    public static function poista($tuoteId) {
+        $sql = "DELETE from Tuote where tuoteId = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($tuoteId));
     }
 
 // Tämä selvittää kuinka monta hakutulosta löydetään tietyllä hakusanalla. Tätä hyödynnetään hakutulosten sivuttamisessa.
@@ -109,6 +198,14 @@ class Tuote {
 
     public function getKuvaus() {
         return $this->kuvaus;
+    }
+
+    public function getKuva() {
+        return $this->kuva;
+    }
+
+    public function setKuva($kuva) {
+        $this->kuva = $kuva;
     }
 
     public function setTuoteId($tuoteId) {

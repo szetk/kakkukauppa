@@ -27,7 +27,7 @@ $kayttaja->setSahkoposti($_POST['sahkoposti']);
 $kayttaja->setPuhelin($_POST['puhelin']);
 $kayttaja->setOsoite($_POST['osoite']);
 $kayttaja->setPostinumero($_POST['postinumero']);
-$kayttaja->setPosti($_POST['posti']);
+$kayttaja->setPaikkakunta($_POST['paikkakunta']);
 
 $salasana0 = $_POST['salasana0']; // vanha salasana
 $salasana1 = $_POST['salasana1'];
@@ -40,19 +40,26 @@ if ($salasana0 == $kirjautunut->getSalasana()) {
     // selvitetään haluaako käyttäjä vaihtaa salasanan
     if (!empty($salasana1) && !empty($salasana2) && $salasana1 == $salasana2) {
         $kayttaja->setSalasana($salasana1);
-        $virheet = Kayttaja::kelpaakoKayttajaksi($kayttaja, false);
+        $virheet = Kayttaja::kelpaakoKayttajaksi($kayttaja, true);
     } else {
         $kayttaja->setSalasana($salasana0);
-        $virheet = Kayttaja::kelpaakoKayttajaksi($kayttaja, false);
+        $virheet = Kayttaja::kelpaakoKayttajaksi($kayttaja, true);
     }
 } else {
     $virheet[] = "Väärä salasana";
 }
 
 if (empty($virheet)) {
-    Kayttaja::paivitaKayttaja($kayttaja);
-    $k = Kayttaja::etsiKayttajaTunnuksilla($kayttaja->getSahkoposti(), $kayttaja->getSalasana());
-    kirjauduSisaan($k);
-    ohjaaSivulle("omaSivu.php", array('kayttaja' => $k));
+    // Jos käyttäjä on painanut painiketta "Poista käyttäjätili" niin sittenhän se poistetaan
+    if (isset($_POST['poista'])) {
+        Kayttaja::poistaKayttaja($kirjautunut->getKayttajaId());
+        kirjauduUlos();
+        ohjaaSivulle("index.php");
+    } else {
+        Kayttaja::paivitaKayttaja($kayttaja);
+        $k = Kayttaja::etsiKayttajaTunnuksilla($kayttaja->getSahkoposti(), $kayttaja->getSalasana());
+        kirjauduSisaan($k);
+        ohjaaSivulle("omaSivu.php", array('kayttaja' => $k));
+    }
 }
 naytaNakyma("omaSivu.php", array('kayttaja' => $kayttaja, 'virheet' => $virheet));

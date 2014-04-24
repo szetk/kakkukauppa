@@ -1,14 +1,16 @@
 
 <h3>Ostoskorisi:</h3>
-<h4>Id: <?php echo $data->tilaus->getTilausId();
-$yht = 0; ?> </h4>
+<h4>Id: <?php
+    echo $data->tilaus->getTilausId();
+    $yht = 0;
+    ?> </h4>
 
 <form class="form-horizontal" role="form" action="ostoskori.php" method="POST">
 
 
     <table>
         <thead>
-            <tr>
+            <tr style="width:500px">
                 <th>Tuote</th>
                 <th style="width:100px">Hinta</th>
                 <th style="width:100px">Määrä</th>
@@ -36,14 +38,16 @@ $yht = 0; ?> </h4>
                     </td>
                     <td><?php echo $tuote->getHinta(); ?> EUR</td>
                     <td><input type="number" class="form-control" name="maarat[]" value=<?php echo htmlspecialchars($maara); ?>></td>
-                    <td><?php $yht = $yht + $tuote->getHinta() * $maara;
-                echo $tuote->getHinta() * $maara; ?> EUR</td>
+                    <td><?php
+                        $yht = $yht + $tuote->getHinta() * $maara;
+                        echo $tuote->getHinta() * $maara;
+                        ?> EUR</td>
                     <td><h3><a href="ostoskori.php?poista=<?php echo $tuote->getTuoteId() ?>">X</a></h3></td>
             <input type="hidden" name="tuotteet[]" value=<?php echo $tuoteId; ?>>
 
             </tr>
             <tr style="height:15px"></tr>
-<?php endforeach; ?>
+        <?php endforeach; ?>
 
 
         <tr style="height:30px">
@@ -59,15 +63,21 @@ $yht = 0; ?> </h4>
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
-            <h4>
                 <button type="submit" class="btn btn-default">Tallenna muutokset</button>
-            </h4>
         </div>
     </div>
-
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="hidden" name="tyhjenna" value="tyhjenna">
+            <button type="submit" class="btn btn-default">Tyhjennä ostoskori</button>    
+        </div>
+    </div>
 </form>
-<form class="form-horizontal" role="form" action="ostoskori.php" method="POST">
-    <input type="hidden" name="tyhjenna" value="tyhjenna">
-    <button type="submit" class="btn btn-default">Tyhjennä ostoskori</button>    
-</form>                
-<a href="kassa.html">Kassalle</a> 
+
+<div class="form-group">
+    <form class="form-horizontal" role="form" action="kassa.php" method="GET">
+        <div class="col-md-offset-2 col-md-10">
+            <button type="submit" class="btn btn-default">Kassalle</button>    
+        </div>
+    </form>
+</div>

@@ -1,15 +1,15 @@
 <h3>Kirjautuminen </h3>
 <form class="form-horizontal" role="form" action="login.php" method="POST">
     <div class="form-group">
-        <label for="inputEmail1" class="col-md-2 control-label">Sähköposti</label>
+        <label for="inputEmail1" class="col-md-3 control-label">Sähköposti</label>
         <div class="col-md-6">
-            <input type="email" class="form-control" id="inputEmail1" name="email" value="<?php echo htmlspecialchars($data->kayttaja); ?>">
+            <input type="email" class="form-control" id="inputEmail1" name="email" value="<?php if (isset($data)){echo htmlspecialchars($data->kayttaja);} ?>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputPassword1" class="col-md-2 control-label">Salasana</label>
+        <label for="inputPassword1" class="col-md-3 control-label">Salasana</label>
         <div class="col-md-6">
-            <input type="password" class="form-control" id="inputPassword1" name="password" placeholder="Password">
+            <input type="password" class="form-control" id="inputPassword1" name="salasana">
         </div>
     </div>
     <div class="form-group">

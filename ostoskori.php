@@ -4,8 +4,6 @@ require_once 'libs/common.php';
 include 'libs/models/Kayttaja.php';
 include 'libs/models/Tilaus.php';
 
-//session_start();
-
 $tilaus = Tilaus::getTilaus();
 
 // yksittäisen tuotteen poisto tapahtuu GET-tyyppisellä kutsulla (koska näkymäsivulla käytetty linkkiä)
@@ -25,7 +23,7 @@ if (!empty($_POST['maarat']) && !empty($_POST['tuotteet'])) {
     $maarat = $_POST['maarat'];
     foreach ($tuotteet as $key => $tuote) {
         // ostoskorin (tilauksen) määrät päivitetään yksitellen
-        Tilaus::paivitaMaarat($tilaus, $tuote, $maarat[$key]);
+        Tilaus::paivitaMaara($tilaus, $tuote, $maarat[$key]);
     }
 }
 

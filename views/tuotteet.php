@@ -1,40 +1,25 @@
 <h3>Tuotteemme</h3>
 <!--<center>-->
+
 <table>
+    <thead>
+        <tr>
+            <td style="width:175px"></td>
+            <td style="width:175px"></td>
+            <td style="width:175px"></td>
+            <td style="width:175px"></td>
+        </tr>
+    </thead>
+    <tbody>
     <tr style="height:180px">
-        <td style="width:175px">
-            Hääkakut
-            <a href="#"><img class="media-object" src="imgs/kakku.png" alt="..."></a>
-        </td>
-        <td style="width:175px">
-            Erikoiskakut
-            <a href="#"><img class="media-object" src="imgs/kakku.png" alt="..."></a>
-        </td>
-        <td style="width:175px">
-            Voileipäkakut
-            <a href="#"><img class="media-object" src="imgs/kakku.png" alt="..."></a>
-        </td>
-        <td style="width:175px"> 
-            Perinteiset täytekakut
-            <a href="#"><img class="media-object" src="imgs/kakku.png" alt="..."></a>
-        </td>
-    </tr>
-
-    <tr>
-
+        <?php $n = 0; $i = 1; foreach($data->tuoteryhmat as $tuoteryhma):?>
         <td>
-            Kuivakakut
-            <a href="#"><img class="media-object" src="imgs/kakku.png" alt="..."></a>
+            <a href='lista.php?tuoteryhma=<?php echo $i; $i++; $n++;?>'><?php echo $tuoteryhma; ?><img class="media-object" src="imgs/kakku.png" alt="..."></a>
         </td>
-        <td>
-            Muut tuotteet
-            <a href="#"><img class="media-object" src="imgs/kakku.png" alt="..."></a>
-
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <?php if ($n == 4){$n = 0; echo '</tr><tr>';} ?>
+        <?php endforeach;?>
+        
     </tr>
-
+</tbody>
 </table>
 <!--</center>-->

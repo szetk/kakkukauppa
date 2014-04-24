@@ -12,15 +12,49 @@ class Kayttaja {
     private $puhelin;
     private $osoite;
     private $postinumero;
-    private $posti;
+    private $paikkakunta;
     private $kayttajaTyyppi; // muuttuja käyttäjätyyppejä (asiakas, admin, tyontekija) varten
 
-    // Hakee tietokannasta käyttäjän sähköpostin ja salasanan perusteella 
-    public static function etsiKayttajaTunnuksilla($sahkoposti, $salasana) {
-        $sql = "SELECT * from Kayttaja where sahkoposti = ? AND salasana = ?";
+    public static function haeKaikki() {
+        $montako = func_get_arg(0);
+        $sivu = (func_get_arg(1) - 1)*$montako;
+        $sql = "SELECT * from Kayttaja ORDER BY kayttajaId LIMIT $sivu, $montako";
         $kysely = getTietokantayhteys()->prepare($sql);
-        $kysely->execute(array($sahkoposti, $salasana));
-        $tulos = $kysely->fetchObject();
+        $kysely->execute();
+        $kayttajat = array();
+        foreach ($kysely->fetchAll(PDO::FETCH_OBJ) as $tulos) {
+            $kayttajat[] = Kayttaja::tuloksenKasittely($tulos);
+        }
+        return $kayttajat;
+    }
+
+    public static function kayttajia() {
+        $sql = "SELECT count(*) FROM Kayttaja";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute();
+        return $kysely->fetchColumn();
+    }
+    
+    public static function onTyontekija($kayttaja){
+        return ($kayttaja->getKayttajaTyyppi() == 'admin' || $kayttaja->getKayttajaTyyppi() == 'tyontekija');
+    }
+
+    public static function paivitaKayttajaTyyppi() {
+        $kayttaja = func_get_arg(0);
+        $kayttajatyyppi = func_get_arg(1);
+        $sql = "UPDATE Kayttaja SET kayttajaTyyppi = ? WHERE kayttajaId = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($kayttajatyyppi, $kayttaja));
+    }
+    
+    public static function poistaKayttaja() {
+        $kayttaja = func_get_arg(0);
+        $sql = "DELETE FROM Kayttaja WHERE kayttajaId = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($kayttaja));
+    }
+    
+    public static function tuloksenKasittely($tulos) {
         if ($tulos == null) {
             return null;
         } else {
@@ -33,12 +67,29 @@ class Kayttaja {
             $kayttaja->setPuhelin($tulos->puhelin);
             $kayttaja->setOsoite($tulos->osoite);
             $kayttaja->setPostinumero($tulos->postinumero);
-            $kayttaja->setPosti($tulos->posti);
+            $kayttaja->setPaikkakunta($tulos->paikkakunta);
             $kayttaja->setKayttajaTyyppi($tulos->kayttajaTyyppi);
             return $kayttaja;
         }
     }
+
+    // Hakee tietokannasta käyttäjän sähköpostin ja salasanan perusteella 
+    public static function etsiKayttajaTunnuksilla($sahkoposti, $salasana) {
+        $sql = "SELECT * from Kayttaja where sahkoposti = ? AND salasana = BINARY ? LIMIT 1"; //BINARY:n vuoksi otetaan merkkikoko huomioon
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($sahkoposti, $salasana));
+        $tulos = $kysely->fetchObject();
+        return Kayttaja::tuloksenKasittely($tulos);
+    }
     
+    public static function etsiKayttajaIdlla($kayttajaId) {
+        $sql = "SELECT * from Kayttaja where kayttajaId = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($kayttajaId));
+        $tulos = $kysely->fetchObject();
+        return Kayttaja::tuloksenKasittely($tulos);
+    }
+
     // Lisää käyttäjän tietokantaan. Huomioi, että kayttaja:n soveltuvuus on varmistettava ennen funktion kutsua.
     public static function lisaaKayttaja($kayttaja) {
         $kentat = array(
@@ -47,13 +98,15 @@ class Kayttaja {
             $kayttaja->sahkoposti,
             $kayttaja->puhelin,
             $kayttaja->osoite,
-            $kayttaja->posti,
+            $kayttaja->paikkakunta,
             $kayttaja->postinumero,
             $kayttaja->salasana);
 
-        $sql = "INSERT INTO Kayttaja(etunimi, sukunimi, sahkoposti, puhelin, osoite, posti, postinumero, salasana, kayttajaTyyppi) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'asiakas')";
+        $sql = "INSERT INTO Kayttaja(etunimi, sukunimi, sahkoposti, puhelin, osoite, paikkakunta, postinumero, salasana, kayttajaTyyppi) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 'asiakas')";
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute($kentat);
+        
+        return getTietokantayhteys()->lastInsertId();
     }
 
     // Päivittää tietokantaan käyttäjän tiedot. Huomioi, että kayttaja täytyy tarkistaa ennen funktion kutsua.
@@ -64,12 +117,12 @@ class Kayttaja {
             $kayttaja->sahkoposti,
             $kayttaja->puhelin,
             $kayttaja->osoite,
-            $kayttaja->posti,
+            $kayttaja->paikkakunta,
             $kayttaja->postinumero,
             $kayttaja->salasana,
             $kayttaja->kayttajaId);
 
-        $sql = "UPDATE Kayttaja SET etunimi = ?, sukunimi = ?, sahkoposti = ?, puhelin = ?, osoite = ?, posti = ?, postinumero = ?, salasana = ? WHERE kayttajaId = ?";
+        $sql = "UPDATE Kayttaja SET etunimi = ?, sukunimi = ?, sahkoposti = ?, puhelin = ?, osoite = ?, paikkakunta = ?, postinumero = ?, salasana = ? WHERE kayttajaId = ?";
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute($kentat);
     }
@@ -87,8 +140,8 @@ class Kayttaja {
     }
 
 // Takistaa, että onko parametrinä annettu käyttäjä soveltuva tietokantaan. Tämän monsteriluokan voisi jakaa pienempiin luokkiin.
-    // Totuusarvoista parametriä reg käytetään, jotta tiedämme tarkistetaanko onko sähköposti jo käytössä. Sähköpostin olemassaoloa ei tule tarkistaa kun esimerkiksi käyttäjä muokkaa omia tietojaan.
-    public static function kelpaakoKayttajaksi($kayttaja, $reg) {
+    // Jos käyttäjä muokkaa omia tietojaan, annetaan parametrin omatSivut arvoksi true, jolloin ei tarkisteta sähköpostin olemassaoloa
+    public static function kelpaakoKayttajaksi($kayttaja, $omatSivut) {
         $virheet = array();
 
         // Tässä käydään käyttäjän muuttujat yksitellen läpi, ja lisätään virheet-listaan virheet
@@ -115,19 +168,17 @@ class Kayttaja {
             $virheet[] = "Et antanut sähköpostia";
         } else if (strlen($tutkittava) < 5 || strlen($tutkittava) > 80) {
             $virheet[] = "Sähköpostin tulee olla 5-80 merkkiä pitkä";
-        } else if (!preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/', $tutkittava)) {
+        } else if (!preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,3})$/', $tutkittava)) {
             $virheet[] = "Sähköpostin tulee olla muotoa xxx@xxx.xx ja sisältää vain sallitutja merkkejä";
-        } else if ($reg) {
-            if (Kayttaja::onkoSahkopostiRekisteroity($tutkittava)) {
-                $virheet[] = "Sähköpostilla on jo käyttäjätunnus";
+        } else {
+            if (!$omatSivut && Kayttaja::onkoSahkopostiRekisteroity($tutkittava)) {
+                $virheet[] = 'Sähköpostilla on jo olemassa <a href="login.php">käyttäjätunnus</a>';
             }
         }
-
+        
         $tutkittava = $kayttaja->salasana;
         if (empty($tutkittava)) {
             $virheet[] = "Et antanut salasanaa";
-        } else if (strlen($tutkittava) < 4 || strlen($tutkittava) > 30) {
-            $virheet[] = "Salasanan tulee olla 4-30 merkkiä pitkä";
         }
 
         $tutkittava = $kayttaja->puhelin;
@@ -148,7 +199,7 @@ class Kayttaja {
             $virheet[] = "Antmasi osoite sisältää kiellettyjä erikoismerkkejä";
         }
 
-        $tutkittava = $kayttaja->posti;
+        $tutkittava = $kayttaja->paikkakunta;
         if (empty($tutkittava)) {
             $virheet[] = "Et antanut paikkakuntaa";
         } else if (strlen($tutkittava) < 3 || strlen($tutkittava) > 80) {
@@ -202,8 +253,8 @@ class Kayttaja {
         return $this->postinumero;
     }
 
-    public function getPosti() {
-        return $this->posti;
+    public function getPaikkakunta() {
+        return $this->paikkakunta;
     }
 
     public function getKayttajaTyyppi() {
@@ -242,8 +293,8 @@ class Kayttaja {
         $this->postinumero = $postinumero;
     }
 
-    public function setPosti($posti) {
-        $this->posti = $posti;
+    public function setPaikkakunta($paikkakunta) {
+        $this->paikkakunta = $paikkakunta;
     }
 
     public function setKayttajaTyyppi($kayttajaTyyppi) {

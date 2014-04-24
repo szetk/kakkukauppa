@@ -2,7 +2,7 @@
     <tr>
         <td style="width:700px">
             <h3><?php echo $data->tuote->getNimi(); ?></h3>
-            <img class="media-object" src="<?php echo "imgs/img", $data->tuote->getTuoteId(), ".png"; ?>" onerror="this.src='imgs/kakku.png'"> 
+            <img class="media-object" src="<?php echo "imgs/", $data->tuote->getKuva(); ?>" onerror="this.src='imgs/kakku.png'"> 
 
             <h4><?php echo $data->tuote->getKuvaus(); ?></h4>
         </td>
@@ -23,6 +23,27 @@
                     </div>
                 </div>
             </form>
+            <?php if (onKirjautunut() && Kayttaja::onTyontekija(haeKayttaja())): ?>
+                <form class="form-horizontal" role="form" action="tuotetiedot.php" method="POST">
+                    <div class="form-group">
+                        <div class="col-md-5">
+                            <input type="hidden" name="toimi" value="tuotesivulta"> <!-- Tällä identifioidaan tullaanko ekaa kertaa muokkaamaan vai ei-->
+                            <input type="hidden" name="tuoteId" value=<?php echo $data->tuote->getTuoteId(); ?>/>
+                            <button type="submit" class="btn btn-default">Muokkaa tuotetta</button>
+                        </div>
+                    </div>
+                </form>
+
+                <form class="form-horizontal" role="form" action="tuotetiedot.php" method="POST">
+                    <div class="form-group">
+                        <div class="col-md-5">
+                            <input type="hidden" name="toimi" value="poista"> <!-- Tällä identifioidaan tullaanko ekaa kertaa muokkaamaan vai ei-->
+                            <input type="hidden" name="tuoteId" value=<?php echo $data->tuote->getTuoteId(); ?>/>
+                            <button type="submit" class="btn btn-default">Poista</button>
+                        </div>
+                    </div>
+                </form>
+            <?php endif ?>
         </td>
     </tr>
 

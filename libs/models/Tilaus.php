@@ -12,7 +12,8 @@ class Tilaus {
     private $toimituspaiva;
     private $toimitustapa;
     private $tuotteet;
-    
+    private $maksutapa;
+
 // Tämä hakee parametrinä saadun käyttäjän avoimen tilauksen, eli ostoskorin. Näitä voi olla vain yksi kerrallaan.
     public static function haeAvoinTilaus($kayttaja) {
         $sql = "SELECT * FROM Tilaus WHERE tilausvaihe LIKE 'avoin' and kayttajaId LIKE ?";
@@ -21,7 +22,14 @@ class Tilaus {
         $tulos = $kysely->fetchObject();
         return Tilaus::tuloksenKasittely($tulos);
     }
-    
+
+    public static function paivitaTilaus($tilaus) {
+        $toimituspaiva = date('Y-m-d', strtotime($tilaus->getToimituspaiva()));
+        $sql = "UPDATE Tilaus SET toimitustapa = ?, maksutapa = ?, toimituspaiva = ?, tilausvaihe = ?, kayttajaId = ? WHERE tilausId = ?";
+        $kysely = getTietokantayhteys()->prepare($sql);
+        $kysely->execute(array($tilaus->getToimitustapa(), $tilaus->getMaksutapa(), $toimituspaiva, $tilaus->getTilausvaihe(), $tilaus->getKayttajaId(), $tilaus->getTilausId()));
+    }
+
 // Tämä hakee tilauksen tietokannasta parametrinä saadun tilausId:n perusteella
     public static function haeTilausId($tilausId) {
         $sql = "SELECT * FROM Tilaus WHERE tilausId = ? LIMIT 1";
@@ -34,18 +42,18 @@ class Tilaus {
 // Tämä palauttaa avoimen tilauksen (eli ostoskorin), jota verkkokaupan käyttäjä voi käyttää ostoskorina.
     public static function getTilaus() {
         session_start();
-        if (onKirjautunut()) {
+        if (isset($_SESSION['tilaus'])) {
+            $tilaus = $_SESSION['tilaus'];
+        } else if (onKirjautunut()) {
             $kayttaja = haeKayttaja();
             $tilaus = Tilaus::haeAvoinTilaus($kayttaja);
             if ($tilaus == null) {
                 $tilaus = Tilaus::uusiTilaus($kayttaja);
             }
-            Tilaus::asetaTilaus($tilaus);
-        } else if (isset($_SESSION['tilaus'])) {
-            $tilaus = $_SESSION['tilaus'];
+            Tilaus::asetaTilausSessioon($tilaus);
         } else {
             $tilaus = Tilaus::uusiTilaus(null);
-            Tilaus::asetaTilaus($tilaus);
+            Tilaus::asetaTilausSessioon($tilaus);
         }
         return $tilaus;
     }
@@ -61,9 +69,9 @@ class Tilaus {
         }
         return $tulokset;
     }
-    
+
 // Tämä päivittää parametrinä saatuun tilaukseen parametrinä saadut tuotteiden määrät tuoteId:n perusteella
-    public static function paivitaMaarat() {
+    public static function paivitaMaara() {
         $tilaus = func_get_arg(0);
         $tuoteId = func_get_arg(1);
         $maara = func_get_arg(2);
@@ -86,6 +94,9 @@ class Tilaus {
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute(array($tilaus->getTilausId(), $tuoteId));
     }
+
+//    public static function poistaTilaus($tilaus){
+//        
 // Tämä tyhjentää koko ostoskorin, eli tilauksen sisällön (ei poista ostoskoria)
     public static function tyhjennaOstoskori($tilaus) {
         $sql = "DELETE FROM TilausTuote WHERE tilausId = ?";
@@ -93,7 +104,7 @@ class Tilaus {
         $kysely->execute(array($tilaus->getTilausId()));
         $tilaus->setTuotteet(null);
     }
-    
+
 // Tämä lisää parametrinä saatuun tilaukseen, parametrina saadun määrn parametrinä saatua tuotetta tuoteId:n perusteella
     public static function lisaaOstoskoriin() {
         $tilaus = func_get_arg(0);
@@ -105,7 +116,7 @@ class Tilaus {
         // Jos ostoskorista löytyy jo tuotetta, muutetaan tietokantaan uusi määrä (aiemmat + juuri lisätyt)
         foreach (Tilaus::getTilausTuotteet($tilaus) as $tId => $m) {
             if ($tuoteId == $tId) {
-                Tilaus::paivitaMaarat($tilaus, $tuoteId, $maara + $m);
+                Tilaus::paivitaMaara($tilaus, $tuoteId, $maara + $m);
                 return;
             }
         }
@@ -143,17 +154,18 @@ class Tilaus {
             $tilaus->setTilauspaiva($tulos->tilauspaiva);
             $tilaus->setToimituspaiva($tulos->toimituspaiva);
             $tilaus->setToimitustapa($tulos->toimitustapa);
+            $tilaus->setMaksutapa($tulos->maksutapa);
             return $tilaus;
         }
     }
-    
+
 // Tämä asettaa sessioon tilauksen
-    public static function asetaTilaus($tilaus) {
+    public static function asetaTilausSessioon($tilaus) {
         $_SESSION['tilaus'] = $tilaus;
     }
 
 // getterit ja setterit
-    
+
     public function getTilausId() {
         return $this->tilausId;
     }
@@ -180,6 +192,14 @@ class Tilaus {
 
     public function getTuotteet() {
         return $this->tuotteet;
+    }
+
+    public function getMaksutapa() {
+        return $this->maksutapa;
+    }
+
+    public function setMaksutapa($maksutapa) {
+        $this->maksutapa = $maksutapa;
     }
 
     public function setTilausId($tilausId) {

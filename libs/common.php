@@ -14,10 +14,14 @@ function ohjaaSivulle($sivu) {
 
 // Kirjautuneeseen käyttäjään liittyvät funktiot
 
-function onKirjautunut() {
+function kaynnistaSessio() {
     if (session_id() == '') {
         session_start();
     }
+}
+
+function onKirjautunut() {
+    kaynnistaSessio();
 
     if (isset($_SESSION['kirjautunut'])) {
         return true;
@@ -25,17 +29,26 @@ function onKirjautunut() {
     return false;
 }
 
+function kryptaa($salasana){
+    return hash("sha512", $salasana);
+}
+
 function haeKayttaja() {
+    kaynnistaSessio();
     $k = $_SESSION['kirjautunut'];
     return $k;
 }
 
 function kirjauduSisaan($k) {
+    kaynnistaSessio();
+    unset($_SESSION['tilaus']); // poistetaan aiempi tilaus sessiosta
     $_SESSION['kirjautunut'] = $k;
 }
 
 function kirjauduUlos() {
-    session_start();
+    kaynnistaSessio();
+    if (!onKirjautunut()) {
+    }
     unset($_SESSION['kirjautunut']);
     unset($_SESSION['tilaus']);
 }
