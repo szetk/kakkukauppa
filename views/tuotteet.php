@@ -14,7 +14,7 @@
     <tr style="height:180px">
         <?php $n = 0; $i = 1; foreach($data->tuoteryhmat as $tuoteryhma):?>
         <td>
-            <a href='lista.php?tuoteryhma=<?php echo $i; $i++; $n++;?>'><?php echo $tuoteryhma; ?><img class="media-object" src="imgs/kakku.png" alt="..."></a>
+            <a href='lista.php?tuoteryhma=<?php echo $i; $i++; $n++;?>'><?php echo $tuoteryhma; ?><img width="120px" height="120px" class="media-object" src="imgs/kakku.jpg" alt="..."></a>
         </td>
         <?php if ($n == 4){$n = 0; echo '</tr><tr>';} ?>
         <?php endforeach;?>
