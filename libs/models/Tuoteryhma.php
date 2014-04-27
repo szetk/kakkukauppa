@@ -7,6 +7,7 @@ class Tuoteryhma {
     private $nimi;
     private $tuoteryhmaId;
 
+    // Hakee kaikki tuoteryhmät ja palauttaa ne listana
     public static function getTuoteryhmat() {
         $sql = "SELECT * from Tuoteryhma ORDER BY tuoteryhmaId";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -19,6 +20,7 @@ class Tuoteryhma {
         return $tulokset;
     }
     
+    // Palauttaa listana kaikkien tuoteryhmien nimet
     public static function getTuoteryhmienNimet(){
         $ryhmat = Tuoteryhma::getTuoteryhmat();
         $array = array();
@@ -28,6 +30,7 @@ class Tuoteryhma {
         return $array;
     }
 
+    // Hakee nimen perusteella tuoteryhmän tuoteryhmaId:n
     public static function haeTuoteryhmaId($nimi){
         $sql = "SELECT tuoteryhmaId from Tuoteryhma where nimi like ? LIMIT 1";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -36,6 +39,7 @@ class Tuoteryhma {
         return $tulos->tuoteryhmaId;
     }
     
+    // Hakee tuoteryhmaId:n perusteella tuoteryhmän nimen
     public static function haeTuoteryhmaNimi($tuoteryhmaId){
         $sql = "SELECT nimi from Tuoteryhma where tuoteryhmaId like ? LIMIT 1";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -44,6 +48,7 @@ class Tuoteryhma {
         return $tulos->nimi;
     }
     
+    // Käsittelee tietokantahaun tuloksen. Tulos on yksi rivi tietokannasta, josta muodostetaan yksi tuoteryhma
     public static function tuloksenKasittely($tulos) {
         if ($tulos == null) {
             return null;
@@ -55,6 +60,7 @@ class Tuoteryhma {
         }
     }
 
+    // getterit ja setterit
     
     public function getNimi() {
         return $this->nimi;

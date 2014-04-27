@@ -27,6 +27,7 @@ tuoteryhmaId INTEGER,
 nimi varchar(80) NOT NULL,
 hinta DECIMAL(10,2) NOT NULL,
 kuvaus varchar(3000),
+kuva varchar(20),
 PRIMARY KEY (tuoteId),
 FOREIGN KEY (tuoteryhmaId) REFERENCES Tuoteryhma(tuoteryhmaId)
 );
@@ -35,7 +36,7 @@ CREATE TABLE Tilaus
 (
 tilausId INTEGER NOT NULL AUTO_INCREMENT,
 kayttajaId INTEGER,
-tilausvaihe varchar(50),
+tilausvaihe varchar(50) NOT NULL,
 tilauspaiva timestamp,
 toimituspaiva date,
 toimitustapa varchar(20),

@@ -14,7 +14,7 @@ class Tilaus {
     private $tuotteet;
     private $maksutapa;
 
-// Tämä hakee parametrinä saadun käyttäjän avoimen tilauksen, eli ostoskorin. Näitä voi olla vain yksi kerrallaan.
+// Tämä hakee parametrinä saadun käyttäjän avoimen tilauksen, eli ostoskorin. Käyttäjällä voi olla vain yksi avoin tilaus kerrallaan.
     public static function haeAvoinTilaus($kayttaja) {
         $sql = "SELECT * FROM Tilaus WHERE tilausvaihe LIKE 'avoin' and kayttajaId LIKE ?";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -23,6 +23,7 @@ class Tilaus {
         return Tilaus::tuloksenKasittely($tulos);
     }
 
+    // Tämä päivittää tilauksen, jonka tilausId on annetun tilaus-tyyppisen parametrin tilausId
     public static function paivitaTilaus($tilaus) {
         $toimituspaiva = date('Y-m-d', strtotime($tilaus->getToimituspaiva()));
         $sql = "UPDATE Tilaus SET toimitustapa = ?, maksutapa = ?, toimituspaiva = ?, tilausvaihe = ?, kayttajaId = ? WHERE tilausId = ?";
@@ -30,7 +31,7 @@ class Tilaus {
         $kysely->execute(array($tilaus->getToimitustapa(), $tilaus->getMaksutapa(), $toimituspaiva, $tilaus->getTilausvaihe(), $tilaus->getKayttajaId(), $tilaus->getTilausId()));
     }
 
-// Tämä hakee tilauksen tietokannasta parametrinä saadun tilausId:n perusteella
+    // Tämä hakee tilauksen tietokannasta parametrinä saadun tilausId:n perusteella
     public static function haeTilausId($tilausId) {
         $sql = "SELECT * FROM Tilaus WHERE tilausId = ? LIMIT 1";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -58,7 +59,7 @@ class Tilaus {
         return $tilaus;
     }
 
-// Tämä palauttaa parametrinä saadun tilaukseen liittyvät tuotteet
+// Tämä palauttaa parametrinä saadun tilaukseen liittyvät tuotteet, eli tilauksen tuotteet ja määrät
     public static function getTilausTuotteet($tilaus) {
         $sql = "SELECT * FROM TilausTuote WHERE tilausId = ?";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -120,7 +121,6 @@ class Tilaus {
                 return;
             }
         }
-
         $sql = "INSERT INTO TilausTuote(tilausId, tuoteId, maara) VALUES(?, ?, ?)";
         $kysely = getTietokantayhteys()->prepare($sql);
         $kysely->execute(array($tilaus->getTilausId(), $tuoteId, $maara));
@@ -138,7 +138,6 @@ class Tilaus {
             $kysely->execute();
         }
         $tilausId = getTietokantayhteys()->lastInsertId();
-
         return Tilaus::haeTilausId($tilausId);
     }
 

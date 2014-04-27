@@ -11,7 +11,7 @@
         <label class="col-md-3 control-label">Toimituspäivä</label>
         <div class="col-md-6">
             <input type="date" class="form-control" name="toimituspaiva" value="<?php echo $data->tilaus->getToimituspaiva(); ?>"> 
-            Huom! Päivämäärä muodossa kk/pp/vvvv
+            <!--Huom! Päivämäärä muodossa kk/pp/vvvv (ilmeisesti vaan chromella)-->
         </div>
     </div>
     <div class="form-group">

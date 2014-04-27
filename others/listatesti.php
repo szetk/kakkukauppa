@@ -1,8 +1,8 @@
 <?php
 require_once "kayttaja.php";
-require_once "libs/tietokanta.php";
+require_once "../libs/tietokanta.php";
 
-$lista = getKayttajat();
+$lista = kayttaja::getKayttajat();
 //$lista = array("Kirahvi", "Trumpetti", "Jeesus", "Parta");
 ?><!DOCTYPE HTML>
 <html>

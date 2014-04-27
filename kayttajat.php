@@ -1,13 +1,14 @@
 <?php
 
 require_once 'libs/common.php';
-include 'libs/models/Kayttaja.php';
 
-if (!empty($_GET['poista'])){  
+// mikäli pyyntöön on asetettu muuttuja poista, hautaan poistaa käyttäjä
+if (isset($_GET['poista'])){  
     Kayttaja::poistaKayttaja($_GET['poista']);
 }
 
-if (!empty($_POST['kayttajatyypit']) && !empty($_POST['kayttajat'])) {
+// jos on asetettu listat kayttajat ja kayttajatyypit voidaan muokata näiden käyttäjätyypit
+if (isset($_POST['kayttajatyypit']) && isset($_POST['kayttajat'])) {
     $kayttajat = $_POST['kayttajat'];
     $kayttajatyypit = $_POST['kayttajatyypit'];
     foreach ($kayttajat as $key => $kayttaja) {
@@ -27,7 +28,7 @@ if (isset($_GET['sivu'])) {
         $sivu = 1;
     }
 }
-$montako = 5; // Tämä voisi olla toki enemmänkin, mutta toistaiseksi tuotteita on niin vähän
+$montako = 7; // Tämä voisi olla toki enemmänkin tai valittavissa, mutta toistaiseksi tuotteita on niin vähän
 
 $kayttajat = Kayttaja::haeKaikki($montako, $sivu);
 $kayttajia = Kayttaja::kayttajia();

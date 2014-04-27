@@ -1,10 +1,8 @@
 <?php
 
 require_once 'libs/common.php';
-include_once 'libs/models/Kayttaja.php';
-include_once 'libs/models/Tuote.php';
-include_once 'libs/models/Tuoteryhma.php';
 
+// jos ei ole oikeuksia niin pistetään pois
 if (!onKirjautunut()) {
     ohjaaSivulle("login.php");
 } else if (!Kayttaja::onTyontekija(haeKayttaja())) {
@@ -19,6 +17,7 @@ $toimi = "";
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     naytaNakyma("tuotetiedot.php", array('tuote' => $tuote, 'tuoteryhmat' => $tuoteryhmat, 'tuoteryhma' => $tuoteryhma, 'toimi' => "lisaa"));
 }
+// kerätään dataa
 if (isset($_POST['tuoteryhma'])) {
     $tuoteryhma = $_POST['tuoteryhma'];
 }
@@ -28,7 +27,7 @@ if (isset($_POST['toimi'])) {
 if (isset($_POST['tuoteId'])) {
     $tuoteId = $_POST['tuoteId'];
 }
-
+// katotaan mikä on pyyntöön asetettu toimi, ja toimitaan sen mukaan
 if ($toimi == "poista") {
     Tuote::poista($tuoteId);
     ohjaaSivulle("lista.php");
@@ -55,7 +54,7 @@ $virheet = Tuote::kelpaakoTuotteeksi($tuote);
 if (!empty($virheet)) {
     naytaNakyma("tuotetiedot.php", array('tuote' => $tuote, 'tuoteryhmat' => $tuoteryhmat, 'virheet' => $virheet, 'tuoteryhma' => $tuoteryhma, 'toimi' => $toimi));
 }
-
+// joudutaan vielä kattomaan tarkastusten jälkeen, että mitä tehdään
 if ($toimi == "muokkaa") {
     Tuote::paivitaTuote($tuote);
     ohjaaSivulle("tuote.php?id=$tuoteId");

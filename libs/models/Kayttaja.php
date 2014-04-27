@@ -15,6 +15,7 @@ class Kayttaja {
     private $paikkakunta;
     private $kayttajaTyyppi; // muuttuja käyttäjätyyppejä (asiakas, admin, tyontekija) varten
 
+    // Tämä hakee kaikki käyttäjät tietokannasta, ja sivuttaa ne
     public static function haeKaikki() {
         $montako = func_get_arg(0);
         $sivu = (func_get_arg(1) - 1)*$montako;
@@ -28,6 +29,7 @@ class Kayttaja {
         return $kayttajat;
     }
 
+    // Tämä laskee kuinka monta käyttäjää tietokannasta löytyy, jotta voidaan sivuttaa tulokset
     public static function kayttajia() {
         $sql = "SELECT count(*) FROM Kayttaja";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -35,10 +37,12 @@ class Kayttaja {
         return $kysely->fetchColumn();
     }
     
+    // Tämä tarkastaa onko käyttäjä työntekijä vai ei. Palautetaan true mikäli kayttaja on työntekijä
     public static function onTyontekija($kayttaja){
         return ($kayttaja->getKayttajaTyyppi() == 'admin' || $kayttaja->getKayttajaTyyppi() == 'tyontekija');
     }
 
+    // Tämä päivittää kayttajan käyttäjätyypiksi parametrina saadun kayttajatyypin
     public static function paivitaKayttajaTyyppi() {
         $kayttaja = func_get_arg(0);
         $kayttajatyyppi = func_get_arg(1);
@@ -47,6 +51,7 @@ class Kayttaja {
         $kysely->execute(array($kayttajatyyppi, $kayttaja));
     }
     
+    // Tämä saa parametrinä käyttäjän tunnuksen (kayttajaId) ja poistaa käyttäjän sen perusteella
     public static function poistaKayttaja() {
         $kayttaja = func_get_arg(0);
         $sql = "DELETE FROM Kayttaja WHERE kayttajaId = ?";
@@ -54,6 +59,7 @@ class Kayttaja {
         $kysely->execute(array($kayttaja));
     }
     
+    // Tämä käsittelee hakutuloksia niin, että yhdestä hakutulosrivistä muodostetaan yksi käyttäjä, joka palautetaan
     public static function tuloksenKasittely($tulos) {
         if ($tulos == null) {
             return null;
@@ -82,6 +88,7 @@ class Kayttaja {
         return Kayttaja::tuloksenKasittely($tulos);
     }
     
+    // Hakee käyttäjän tietokannasta pelkästään käyttäjätunnuksen, kayttajaId, perusteella
     public static function etsiKayttajaIdlla($kayttajaId) {
         $sql = "SELECT * from Kayttaja where kayttajaId = ?";
         $kysely = getTietokantayhteys()->prepare($sql);

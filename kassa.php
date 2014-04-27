@@ -1,8 +1,6 @@
 <?php
 
 require_once 'libs/common.php';
-include_once 'libs/models/Kayttaja.php';
-include_once 'libs/models/Tilaus.php';
 
 $tilaus = Tilaus::getTilaus();
 $tilaus->setTuotteet(Tilaus::getTilausTuotteet($tilaus));
@@ -16,7 +14,7 @@ $tilauspaiva = date('Y-m-d');
 
 if (onKirjautunut()) {
     $kayttaja = haeKayttaja();
-    $virheet = array();
+    $virheet = array(); // luodaan uusi lista virheille, jos käyttäjä on kirjautunut
 
     $readonly = true;
 } else {
@@ -29,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     naytaNakyma("kassa.php", array('kayttaja' => $kayttaja, 'tilaus' => $tilaus, 'readonly' => $readonly));
 }
 
+// kirjautunut käyttäjä ei voi muuttaa tietojaan kassasivulla, sillä siihen vaaditaan salasana
 if (!onKirjautunut()) {
     $kayttaja->setEtunimi($_POST['etunimi']);
     $kayttaja->setSukunimi($_POST['sukunimi']);

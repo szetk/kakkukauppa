@@ -1,16 +1,16 @@
 <?php
 
 require_once 'libs/common.php';
-include 'libs/models/Kayttaja.php';
-include 'libs/models/Tilaus.php';
 
+// haetaan avoin tilaus, eli ostoskori
 $tilaus = Tilaus::getTilaus();
 
 // yksittäisen tuotteen poisto tapahtuu GET-tyyppisellä kutsulla (koska näkymäsivulla käytetty linkkiä)
-if (!empty($_GET['poista'])){  
+if (!empty($_GET['poista'])) {
     Tilaus::poistaTuote($tilaus, $_GET['poista']);
 }
 
+// jos on asetettu parametri tyhjenna, niin tyhjennetään ostoskori
 if (!empty($_POST['tyhjenna'])) {
     Tilaus::tyhjennaOstoskori($tilaus);
     $tilaus->setTuotteet(Tilaus::getTilausTuotteet($tilaus));
@@ -39,9 +39,13 @@ $tuoteId = $_POST["tuoteId"];
 if (empty($_POST["maara"])) {
     naytaNakyma("ostoskori.php", array('tilaus' => $tilaus));
 }
-$maara = $_POST["maara"];
 
-if ($maara >= 1) {
+// tarkistetaan, että määrässä on vain numeroita, poikkeustilanteessa palaudutaan tuotteen sivulle
+$maara = $_POST["maara"];
+$virheet = Tuote::tarkistaMaara($maara);
+if (!empty($virheet)) {
+    naytaNakyma('tuote.php', array('tuote' => Tuote::etsi($tuoteId), 'maara' => $maara, 'virheet' => $virheet));
+} else {
     Tilaus::lisaaOstoskoriin($tilaus, $tuoteId, $maara);
     $tilaus->setTuotteet(Tilaus::getTilausTuotteet($tilaus));
 }

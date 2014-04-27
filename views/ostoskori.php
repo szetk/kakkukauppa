@@ -1,21 +1,24 @@
 
 <h3>Ostoskorisi:</h3>
-<h4>Id: <?php
+<h5>Ostoskorin tunnus: <?php
     echo $data->tilaus->getTilausId();
     $yht = 0;
-    ?> </h4>
+    ?> </h5>
+
+<h3>Tuotteet:</h3>
+
 
 <form class="form-horizontal" role="form" action="ostoskori.php" method="POST">
 
 
     <table>
         <thead>
-            <tr style="width:500px">
-                <th>Tuote</th>
+            <tr>
+                <th style="width:500px">Tuote</th>
                 <th style="width:100px">Hinta</th>
-                <th style="width:100px">Määrä</th>
-                <th style="width:100px">Yhteensä</th>
-                <th style="width:50px"></th>
+                <th style="width:70px">Määrä</th>
+                <th style="width:90px">Yhteensä</th>
+                <th style="width:10px"></th>
             </tr>
         </thead>
 
@@ -27,17 +30,26 @@
                 <tr>
                     <td>
                         <div class="media">
-                            <a class="pull-left" href="#">
-                                <img class="media-object" src="<?php echo "imgs/img", $tuote->getTuoteId(), ".png"; ?>" onerror="this.src='imgs/kakku.png'">
-                            </a>
+                            <a class="pull-left" href="tuote.php?id=<?php echo $tuote->getTuoteId(); ?>">
+                        <img width="100px" height="100px" class="media-object" src="<?php echo "imgs/", $tuote->getKuva(); ?>" onerror="this.src='imgs/kakku.jpg'"> 
+                    </a>
                             <div class="media-body">
-                                <h4 class="media-heading"><?php echo $tuote->getNimi(); ?></h4>
-                                <h5><?php echo $tuote->getKuvaus(); ?></h5>
+                                <a href="tuote.php?id=<?php echo $tuote->getTuoteId(); ?>" style="color: rgb(0,0,0)"><h4 class="media-heading"><?php echo $tuote->getNimi(); ?></h4></a>
+                                <h5><?php
+                        $kuvaus = $tuote->getKuvaus();
+                        if (strlen($kuvaus) > 200) {
+                            $kuvaus = substr($kuvaus, 0, 200);
+                            $kuvaus = "$kuvaus...";
+                        }
+                        echo $kuvaus;
+                        ?></h5>
                             </div>
                         </div>
                     </td>
                     <td><?php echo $tuote->getHinta(); ?> EUR</td>
-                    <td><input type="number" class="form-control" name="maarat[]" value=<?php echo htmlspecialchars($maara); ?>></td>
+                    <td>
+                            <input type="number" class="form-control" name="maarat[]" value=<?php echo htmlspecialchars($maara); ?>>
+                    </td>
                     <td><?php
                         $yht = $yht + $tuote->getHinta() * $maara;
                         echo $tuote->getHinta() * $maara;
@@ -63,13 +75,12 @@
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
-                <button type="submit" class="btn btn-default">Tallenna muutokset</button>
+            <button type="submit" class="btn btn-default">Tallenna muutokset</button>
         </div>
     </div>
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
-            <input type="hidden" name="tyhjenna" value="tyhjenna">
-            <button type="submit" class="btn btn-default">Tyhjennä ostoskori</button>    
+            <button type="submit" name="tyhjenna" value="tyhjenna" class="btn btn-default">Tyhjennä ostoskori</button>    
         </div>
     </div>
 </form>

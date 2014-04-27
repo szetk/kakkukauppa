@@ -1,8 +1,8 @@
 <?php
 
 require_once 'libs/common.php';
-include 'libs/models/Kayttaja.php';
 
+// kirjautumaton käyttäjä ohjataan kirjautumaan
 if (!onKirjautunut()) {
     ohjaaSivulle("login.php");
 }
@@ -10,6 +10,7 @@ if (!onKirjautunut()) {
 $kirjautunut = haeKayttaja();
 // mikäli kutsu ei ole POST-tyyppinen, on käyttäjä vasta menossa omalle sivulle, eikä tietoja tarvitse tarkistaa
 
+// jos tullaan ekaa kertaa sivulle, ei tarvitse tarkastaa virheitä
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     naytaNakyma("omaSivu.php", array('kayttaja' => $kirjautunut));
 }
@@ -35,7 +36,7 @@ $salasana2 = $_POST['salasana2'];
 
 $virheet = array();
 
-// onko salasana oikein
+// onko salasana oikein, tätä ei tarkasteta funktiossa kelpaakoKayttajaksi, koska samaa käytetään kassasivulla, eikä vieraileva asiakas ei tarvitse salasanaa
 if ($salasana0 == $kirjautunut->getSalasana()) {
     // selvitetään haluaako käyttäjä vaihtaa salasanan
     if (!empty($salasana1) && !empty($salasana2) && $salasana1 == $salasana2) {
@@ -55,6 +56,7 @@ if (empty($virheet)) {
         Kayttaja::poistaKayttaja($kirjautunut->getKayttajaId());
         kirjauduUlos();
         ohjaaSivulle("index.php");
+        // muutoin päpivitetään käyttäjän tiedot
     } else {
         Kayttaja::paivitaKayttaja($kayttaja);
         $k = Kayttaja::etsiKayttajaTunnuksilla($kayttaja->getSahkoposti(), $kayttaja->getSalasana());

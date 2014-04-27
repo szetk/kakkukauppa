@@ -11,6 +11,7 @@ class Tuote {
     private $kuvaus;
     private $kuva;
 
+    // Tämä tarkastaa onko parametrinä saatu tuote sopiva tuotteeksi 
     public static function kelpaakoTuotteeksi($tuote) {
         $virheet = array();
 
@@ -49,6 +50,17 @@ class Tuote {
         return $virheet;
     }
 
+    public static function tarkistaMaara($maara) {
+        $virheet = array();
+        if (!preg_match("#^[0-9]+$#", $maara)) {
+            $virheet[] = "Määrässa saa olla vain numeroita";
+        } else if ($maara > 100) {
+            $virheet[] = "Et saa tilata liikaa kakkuja";
+        }
+        return $virheet;
+    }
+
+    // Lisää parametrinä saadun tuotteen tietokantaan
     public static function lisaaTuote($tuote) {
         $kentat = array(
             $tuote->nimi,
@@ -63,6 +75,7 @@ class Tuote {
         return getTietokantayhteys()->lastInsertId();
     }
 
+    // Tämä päivittää tuotteen tiedot. Tietokannasta haetaan tuote, jolla on parametrinä saadun tuotteen tuoteId, joka sitten muutetaan
     public static function paivitaTuote($tuote) {
         $kentat = array(
             $tuote->nimi,
@@ -112,6 +125,7 @@ class Tuote {
         return $tulokset;
     }
 
+    // Hakee sivullisen tuotteita, jotka kuuluvat parametrina saatuun tuoteryhmään, tuoteryhma on siis tuoteyhmaId
     public static function haeTuoteryhmanTuotteet() {
         $tuoteryhma = func_get_arg(0);
         $montako = func_get_arg(1);
@@ -127,6 +141,7 @@ class Tuote {
         return $tulokset;
     }
 
+    // Laskee kuinka monta tuotetta tietystä tuoteryhmästä löytyy, jotta sivuttaminen onnistuu
     public static function tuoteryhmassaTuotteita($tuoteryhma) {
         $sql = "SELECT count(*) FROM Tuote WHERE tuoteryhmaId LIKE ?";
         $kysely = getTietokantayhteys()->prepare($sql);
@@ -159,6 +174,7 @@ class Tuote {
         return Tuote::tuloksenKasittely($tulos);
     }
 
+    // Poistaa tietokannasta tuotteen, jolla on tuoteId tuoteId:na
     public static function poista($tuoteId) {
         $sql = "DELETE from Tuote where tuoteId = ?";
         $kysely = getTietokantayhteys()->prepare($sql);
